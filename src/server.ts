@@ -1,6 +1,7 @@
 import app from "./app.js";
+import { env } from "./config/env.js";
 
-const PORT=4000;
+const PORT=env.port;
 
 // start the server
 app.listen(PORT,()=>{
