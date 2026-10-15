@@ -15,6 +15,17 @@ const options = {
         url: "http://localhost:4000",
       },
     ],
+
+    // Adds the "Authorize" button — paste the accessToken from /login (without "Bearer ")
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
   },
 
   apis: ["./src/routes/*.routes.ts"]
