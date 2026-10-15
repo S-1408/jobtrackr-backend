@@ -1,0 +1,80 @@
+import express from "express";
+import { login, logout, me, refresh } from "../controllers/auth.controller.js";
+import { requireAuth } from "../middleware/auth.middleware.js";
+const router = express.Router();
+
+// Swagger UI is served from the same origin as the API, so the browser stores the httpOnly
+// refreshToken cookie from /login and sends it to /refresh and /logout automatically.
+
+/**
+ * @openapi
+ * /api/auth/login:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Log in — returns an access token and sets the refreshToken cookie
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: abc@gmail.com
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Logged in. Copy accessToken into the Authorize button.
+ *       400:
+ *         description: Email or password missing
+ *       401:
+ *         description: Invalid email or password
+ */
+router.post("/login",login);
+
+/**
+ * @openapi
+ * /api/auth/refresh:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Get a new access token using the refreshToken cookie (rotates the cookie)
+ *     responses:
+ *       200:
+ *         description: New access token; refreshToken cookie replaced
+ *       401:
+ *         description: Missing, invalid, expired or revoked refresh token
+ */
+router.post("/refresh",refresh);
+
+/**
+ * @openapi
+ * /api/auth/logout:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Revoke the refresh token and clear the cookie
+ *     responses:
+ *       204:
+ *         description: Logged out (also returned when there was no session)
+ */
+router.post("/logout",logout);
+
+/**
+ * @openapi
+ * /api/auth/me:
+ *   get:
+ *     tags: [Auth]
+ *     summary: Current user (requires access token)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: The logged-in user
+ *       401:
+ *         description: Missing, invalid or expired access token
+ */
+router.get("/me",requireAuth,me); //  (protected with requireAuth; useful for testing and for the frontend)
+
+export default router;

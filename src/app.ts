@@ -4,8 +4,11 @@ import cors from 'cors';
 import swaggerSpec from './swagger.js';
 import swaggerUi from 'swagger-ui-express';
 import applicationRoutes from './routes/application.routes.js'
+import authRoutes from './routes/auth.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware.js'
 import { env } from './config/env.js';
+import cookieParser from 'cookie-parser';
+import { requireAuth } from './middleware/auth.middleware.js';
 
 //Express app is just a request handler function. 
 // Express runs your middleware and routes inside the one callback Node gives it.
@@ -14,10 +17,13 @@ const app = express();
 // Middleware chain json,auth,logs
 // cors middleware
 app.use(cors({
-    origin:env.corsOrigin
+    origin:env.corsOrigin,
+    credentials:true // required for cookies
 }));
 //. JSON parser middleware
 app.use(express.json());
+app.use(cookieParser());
+
 // Middleware for HTTP caching. private-it tells browser and othr clients not to cache your api response and no-cache means revalidate cache before using store response
 app.use("/api", (_req, res, next) => {
   res.set("Cache-Control", "private, no-cache");
@@ -41,8 +47,10 @@ app.get("/", (req, res) => {
 });
 
 // Routes
+app.use("/api/auth",authRoutes);
+
 // app.use = (fn)=> stack.push({fn})
-app.use("/api/applications", applicationRoutes);
+app.use("/api/applications",requireAuth, applicationRoutes);
 
 // Error handling — must be registered LAST, after all routes
 app.use(notFoundHandler);
