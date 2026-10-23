@@ -9,9 +9,10 @@ export type PublicUser = Omit<User,"passwordHash">
 const users: User[]=[
     {
     id:1,
-    email:'abc@gmail.com',
-    name:"abc",
-    passwordHash:'$2b$10$XAuV0QFPaRQQBuTuGB04tOHZ71Ko6iSTpF.4QO7Bm.18SAga8pZP2'
+    email:'sonam@gmail.com',
+    name:"Sonam Verma",
+    // passwordHash:'$2b$10$XAuV0QFPaRQQBuTuGB04tOHZ71Ko6iSTpF.4QO7Bm.18SAga8pZP2'
+    passwordHash:'$2b$10$LdkBEeP0sfgEpFT6NP/rOeSWUscwIVix6mYNkWflFrM3YIlTXCcHO'
     }
 ]
 
