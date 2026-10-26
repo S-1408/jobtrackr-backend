@@ -1,10 +1,47 @@
 import express from "express";
-import { login, logout, me, refresh } from "../controllers/auth.controller.js";
+import {
+  login,
+  logout,
+  me,
+  refresh,
+  register,
+} from "../controllers/auth.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 const router = express.Router();
 
 // Swagger UI is served from the same origin as the API, so the browser stores the httpOnly
 // refreshToken cookie from /login and sends it to /refresh and /logout automatically.
+
+/**
+ * @openapi
+ * /api/auth/register:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Create an account and start a session
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, name, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *     responses:
+ *       201:
+ *         description: Account created; access token and refresh cookie issued
+ *       400:
+ *         description: Invalid registration data
+ *       409:
+ *         description: Email is already registered
+ */
+router.post("/register", register);
 
 /**
  * @openapi

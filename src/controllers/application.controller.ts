@@ -1,44 +1,48 @@
 import type { Request, Response } from "express";
 import * as applicationService from "../services/application.service.js";
+import { AppError } from "../utils/AppError.js";
+
+function currentUserId(req: Request): number {
+  if (!req.user) {
+    throw new AppError(401, "Missing access token");
+  }
+  return req.user.id;
+}
 
 // GET /applications?search=&status=
-export const getAllApplication = (req: Request, res: Response) => {
+export const getAllApplication = async (req: Request, res: Response) => {
   const { search, status } = req.query;
-  // req.query values can be string | string[] | object — ignore anything that isn't a single string
-  const applications = applicationService.list({
+  const applications = await applicationService.list(currentUserId(req), {
     search: typeof search === "string" ? search.trim() : undefined,
     status: typeof status === "string" ? status : undefined,
   });
   res.json(applications);
 };
 
-export const createApplication = (req: Request, res: Response) => {
-  const { company, role, status } = req.body;
-  const application = applicationService.create({ company, role, status });
+export const createApplication = async (req: Request, res: Response) => {
+  const application = await applicationService.create(
+    currentUserId(req),
+    req.body ?? {},
+  );
   res.status(201).json(application);
 };
-export const updateApplication = (
+
+export const updateApplication = async (
   req: Request<{ id: string }>,
   res: Response,
 ) => {
-  const { id } = req.params;
-  const { company, role, status } = req.body;
-  const application = applicationService.update(id, { company, role, status });
+  const application = await applicationService.update(
+    currentUserId(req),
+    req.params.id,
+    req.body ?? {},
+  );
   res.status(200).json(application);
 };
 
-export const deleteApplication = (
+export const deleteApplication = async (
   req: Request<{ id: string }>,
   res: Response,
 ) => {
-  const { id } = req.params;
-  applicationService.deleteById(id);
+  await applicationService.deleteById(currentUserId(req), req.params.id);
   res.status(204).send();
 };
-
-// HTTP request
-//     ↓
-// Controller
-//     ↓
-// Ask service for applications
-//     ↓

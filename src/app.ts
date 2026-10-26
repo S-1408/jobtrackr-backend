@@ -9,7 +9,7 @@ import authRoutes from './routes/auth.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware.js'
 import { env } from './config/env.js';
 import cookieParser from 'cookie-parser';
-import { checkRefreshTokenStore } from './services/refresh-token.store.js';
+import { checkDatabase } from './db/database.js';
 
 //Express app is just a request handler function. 
 // Express runs your middleware and routes inside the one callback Node gives it.
@@ -49,7 +49,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/health", async (_req, res) => {
-  await checkRefreshTokenStore();
+  await checkDatabase();
   res.json({ status: "ok" });
 });
 

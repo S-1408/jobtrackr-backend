@@ -26,6 +26,17 @@ export const login = async (req: Request, res: Response) => {
   res.json({ accessToken, user });
 };
 
+export const register = async (req: Request, res: Response) => {
+  const { email, name, password } = req.body ?? {};
+  const { accessToken, refreshToken, user } = await authService.register(
+    email,
+    name,
+    password,
+  );
+  res.cookie(REFRESH_COOKIE, refreshToken, refreshCookieOptions);
+  res.status(201).json({ accessToken, user });
+};
+
 // POST /api/auth/refresh  (cookie sent automatically by the browser)
 export const refresh = async (req: Request, res: Response) => {
   const { accessToken, refreshToken } = await authService.refresh(req.cookies?.[REFRESH_COOKIE]);
@@ -41,8 +52,8 @@ export const logout = async (req: Request, res: Response) => {
 };
 
 // GET /api/auth/me  (behind requireAuth, so req.user is set)
-export const me = (req: Request, res: Response) => {
-  const user = req.user && findById(req.user.id);
+export const me = async (req: Request, res: Response) => {
+  const user = req.user && await findById(req.user.id);
   if (!user) {
     throw new AppError(401, "User no longer exists");
   }

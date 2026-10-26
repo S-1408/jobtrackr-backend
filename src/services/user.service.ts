@@ -1,28 +1,66 @@
-export interface User{
-    id:number;
-    email:string;
-    name:string;
-    passwordHash:string
-}
-export type PublicUser = Omit<User,"passwordHash">
+import type { QueryResultRow } from "pg";
+import { pool } from "../db/database.js";
 
-const users: User[]=[
-    {
-    id:1,
-    email:'sonam@gmail.com',
-    name:"Sonam Verma",
-    // passwordHash:'$2b$10$XAuV0QFPaRQQBuTuGB04tOHZ71Ko6iSTpF.4QO7Bm.18SAga8pZP2'
-    passwordHash:'$2b$10$LdkBEeP0sfgEpFT6NP/rOeSWUscwIVix6mYNkWflFrM3YIlTXCcHO'
-    }
-]
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  passwordHash: string;
+}
 
-export function findByEmail(email:string){
-   return users.find((user)=>user.email.toLowerCase() === email.toLowerCase())
+export type PublicUser = Omit<User, "passwordHash">;
+
+interface UserRow extends QueryResultRow {
+  id: string;
+  email: string;
+  name: string;
+  password_hash: string;
 }
-export function findById(id:number){
-  return users.find(user=>user.id===id)
+
+const mapUser = (row: UserRow): User => ({
+  id: Number(row.id),
+  email: row.email,
+  name: row.name,
+  passwordHash: row.password_hash,
+});
+
+export async function findByEmail(email: string): Promise<User | undefined> {
+  const result = await pool.query<UserRow>(
+    `SELECT id, email, name, password_hash
+     FROM users
+     WHERE LOWER(email) = LOWER($1)
+     LIMIT 1`,
+    [email],
+  );
+  return result.rows[0] ? mapUser(result.rows[0]) : undefined;
 }
-export function toPublicUser(user:User):PublicUser{
-  const {passwordHash,...publicUser} = user;
-  return publicUser
+
+export async function findById(id: number): Promise<User | undefined> {
+  const result = await pool.query<UserRow>(
+    `SELECT id, email, name, password_hash
+     FROM users
+     WHERE id = $1
+     LIMIT 1`,
+    [id],
+  );
+  return result.rows[0] ? mapUser(result.rows[0]) : undefined;
+}
+
+export async function createUser(
+  email: string,
+  name: string,
+  passwordHash: string,
+): Promise<User> {
+  const result = await pool.query<UserRow>(
+    `INSERT INTO users (email, name, password_hash)
+     VALUES ($1, $2, $3)
+     RETURNING id, email, name, password_hash`,
+    [email, name, passwordHash],
+  );
+  return mapUser(result.rows[0]);
+}
+
+export function toPublicUser(user: User): PublicUser {
+  const { passwordHash: _passwordHash, ...publicUser } = user;
+  return publicUser;
 }

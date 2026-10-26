@@ -1,11 +1,8 @@
 import app from "./app.js";
 import { env } from "./config/env.js";
-import {
-  closeRefreshTokenStore,
-  initializeRefreshTokenStore,
-} from "./services/refresh-token.store.js";
+import { closeDatabase, initializeDatabase } from "./db/database.js";
 
-await initializeRefreshTokenStore();
+await initializeDatabase();
 
 const server = app.listen(env.port, "0.0.0.0", () => {
   console.log(`Server listening on port ${env.port}`);
@@ -28,7 +25,7 @@ const shutdown = (signal: NodeJS.Signals) => {
       console.error("HTTP server shutdown failed", serverError);
       process.exitCode = 1;
     }
-    void closeRefreshTokenStore()
+    void closeDatabase()
       .catch((error: unknown) => {
         console.error("PostgreSQL pool shutdown failed", error);
         process.exitCode = 1;

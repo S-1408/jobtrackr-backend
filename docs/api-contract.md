@@ -92,6 +92,11 @@ Every error response has `error`:
 | Method | Path | Success |
 |---|---|---|
 | GET | `/health` | 200 (PostgreSQL reachable) |
+| POST | `/api/auth/register` | 201 |
+| POST | `/api/auth/login` | 200 |
+| POST | `/api/auth/refresh` | 200 |
+| POST | `/api/auth/logout` | 204 |
+| GET | `/api/auth/me` | 200 |
 | GET | `/applications` | 200 (paginated list) |
 | GET | `/dashboard/stats` | 200 |
 | GET | `/applications/:id` | 200 |
@@ -419,7 +424,7 @@ export interface ApiErrorBody {
 
 These are designed so they **do not change** any response shape above.
 
-- **Auth:** `POST /auth/register`, `POST /auth/login` (returns `{ data: { user, accessToken } }`, refresh token in httpOnly cookie), `POST /auth/refresh`, `POST /auth/logout` (204), `GET /auth/me`. After auth, all application endpoints return only the current user's data; another user's application returns **404** (not 403).
+- **Auth:** Password reset, email verification, and account recovery are not implemented. Registration/login issue an access token and an HttpOnly refresh-token cookie. Application records are scoped to the authenticated user; another user's application returns **404** (not 403).
 - **Edit conflicts:** PATCH may return `409 CONFLICT` if the record changed since the client loaded it.
 - **Archive / soft delete:** `archivedAt` field + `?archived=true` filter.
 - **Rate limiting:** `429` + `RateLimit-*` and `Retry-After` headers.

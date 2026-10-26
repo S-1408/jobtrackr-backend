@@ -29,7 +29,9 @@ For a host that supports separate build and start commands, use:
 - Build: `npm ci && npm run build`
 - Start: `npm start`
 
-The process listens on `0.0.0.0` and the port from `PORT`. It initializes the refresh-token table and verifies PostgreSQL before accepting requests. Configure the host's health-check path as `/health`; this endpoint returns 200 only when PostgreSQL is reachable.
+The process listens on `0.0.0.0` and the port from `PORT`. On startup, it creates the users, applications, and refresh-token tables and indexes if they do not exist, then waits for PostgreSQL before accepting requests. Configure the host's health-check path as `/health`; this endpoint returns 200 only when PostgreSQL is reachable.
+
+Production does not create a default account or demo application records. Create an account using `POST /api/auth/register` or the frontend registration screen.
 
 ## Connect the frontend
 
@@ -37,6 +39,8 @@ Set the frontend's API base URL to `https://<backend-host>` and redeploy it. Set
 
 Refresh cookies are HttpOnly, Secure in production, and use SameSite=Strict. For the most reliable browser behavior, host the frontend and API on the same site, such as `app.example.com` and `api.example.com`. Unrelated hosting domains may be treated as third-party-cookie contexts by browsers.
 
-## Current data persistence limitation
+## Data persistence and migration
 
-Only refresh-token state is persisted in PostgreSQL. User accounts and job applications are currently held in in-memory arrays, so changes to them are lost on restart and are not shared reliably across multiple instances. Migrate those records to PostgreSQL before using the service for real users or horizontal scaling.
+User accounts, job applications, and refresh-token state are stored in PostgreSQL. Applications are scoped to the authenticated user. Development mode seeds the existing sample user and sample applications if they are not already present; production does not seed demo credentials.
+
+The former runtime arrays were never persisted, so data that existed only in a stopped backend process cannot be recovered automatically. Any records held in another database or export must be imported separately before switching the frontend to this API.

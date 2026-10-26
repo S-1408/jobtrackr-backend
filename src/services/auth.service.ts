@@ -1,6 +1,11 @@
 import bcrypt from "bcryptjs";
 import { AppError } from "../utils/AppError.js";
-import { findByEmail, findById, toPublicUser } from "./user.service.js";
+import {
+  createUser,
+  findByEmail,
+  findById,
+  toPublicUser,
+} from "./user.service.js";
 import {
   consumeRefreshToken,
   revokeAllForUser,
@@ -38,11 +43,59 @@ export async function login(email: unknown, password: unknown) {
     throw new AppError(400, "Email and password are required");
   }
 
-  const user = findByEmail(email.trim());
+  const user = await findByEmail(email.trim());
   // bcrypt.compare returns false for a wrong password — it does NOT throw
   const ok = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
   if (!user || !ok) {
     throw new AppError(401, "Invalid email or password");
+  }
+
+  return { ...(await issueTokens(user.id)), user: toPublicUser(user) };
+}
+
+export async function register(
+  email: unknown,
+  name: unknown,
+  password: unknown,
+) {
+  if (
+    typeof email !== "string" ||
+    typeof name !== "string" ||
+    typeof password !== "string"
+  ) {
+    throw new AppError(400, "Email, name, and password are required");
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedName = name.trim();
+  if (
+    normalizedEmail.length > 254 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+  ) {
+    throw new AppError(400, "A valid email address is required");
+  }
+  if (!normalizedName || normalizedName.length > 100) {
+    throw new AppError(400, "Name must be between 1 and 100 characters");
+  }
+  const passwordBytes = Buffer.byteLength(password, "utf8");
+  if (passwordBytes < 8 || passwordBytes > 72) {
+    throw new AppError(400, "Password must be between 8 and 72 UTF-8 bytes");
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+  let user;
+  try {
+    user = await createUser(normalizedEmail, normalizedName, passwordHash);
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "23505"
+    ) {
+      throw new AppError(409, "An account with this email already exists");
+    }
+    throw error;
   }
 
   return { ...(await issueTokens(user.id)), user: toPublicUser(user) };
@@ -71,7 +124,7 @@ export async function refresh(oldRefreshToken: unknown) {
   }
 
   // user may have been deleted since the token was issued
-  if (!findById(userId)) {
+  if (!(await findById(userId))) {
     throw new AppError(401, "User no longer exists");
   }
 
