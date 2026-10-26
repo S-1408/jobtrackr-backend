@@ -4,11 +4,11 @@ import cors from 'cors';
 import swaggerSpec from './swagger.js';
 import swaggerUi from 'swagger-ui-express';
 import applicationRoutes from './routes/application.routes.js'
+import dashboardRoutes from './routes/dashboard.routes.js'
 import authRoutes from './routes/auth.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware.js'
 import { env } from './config/env.js';
 import cookieParser from 'cookie-parser';
-import { requireAuth } from './middleware/auth.middleware.js';
 
 //Express app is just a request handler function. 
 // Express runs your middleware and routes inside the one callback Node gives it.
@@ -49,8 +49,9 @@ app.get("/", (req, res) => {
 // Routes
 app.use("/api/auth",authRoutes);
 
-// app.use = (fn)=> stack.push({fn})
-app.use("/api/applications",requireAuth, applicationRoutes);
+// Application routes apply access-token authentication in their router.
+app.use("/api/applications", applicationRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Error handling — must be registered LAST, after all routes
 app.use(notFoundHandler);
@@ -73,4 +74,3 @@ export default app;
 //    ↓                                               ↓
 // Response handler - response.status().json()        ↓
 //                                                Error middleware - (err,req,res,next)                       
-

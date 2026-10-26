@@ -93,7 +93,7 @@ Every error response has `error`:
 |---|---|---|
 | GET | `/health` | 200 |
 | GET | `/applications` | 200 (paginated list) |
-| GET | `/applications/stats` | 200 |
+| GET | `/dashboard/stats` | 200 |
 | GET | `/applications/:id` | 200 |
 | POST | `/applications` | 201 |
 | PATCH | `/applications/:id` | 200 |
@@ -163,15 +163,13 @@ Server applies: **filter → search → sort (with `id` as tie-breaker) → coun
 }
 ```
 
-### 3.3 `GET /applications/stats` — dashboard counts
+### 3.3 `GET /dashboard/stats` — dashboard counts
 
 **200** — every status is always present, even when 0.
 ```json
 {
-  "data": {
-    "total": 57,
-    "byStatus": { "applied": 30, "interview": 15, "offer": 2, "rejected": 10 }
-  }
+  "total": 57,
+  "byStatus": { "applied": 30, "interview": 15, "offer": 2, "rejected": 10 }
 }
 ```
 

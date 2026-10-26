@@ -23,4 +23,5 @@ export const env = {
   jwtAccessExpiresIn: required("JWT_ACCESS_EXPIRES_IN") as ExpiresIn,
   refreshTokenSecret: required("JWT_REFRESH_SECRET"),
   refreshTokenExpiresIn: required("JWT_REFRESH_EXPIRES_IN") as ExpiresIn,
+  databaseUrl: process.env.DATABASE_URL,
 };

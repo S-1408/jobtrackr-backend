@@ -76,6 +76,24 @@ export function list({ search, status }: ListApplicationsQuery) {
   );
 }
 
+export function getStatistics() {
+  const byStatus = {
+    applied: 0,
+    interview: 0,
+    offer: 0,
+    rejected: 0,
+  };
+
+  for (const application of applications) {
+    byStatus[application.status] += 1;
+  }
+
+  return {
+    total: applications.length,
+    byStatus,
+  };
+}
+
 export const create = (payload: CreateApplicationInput) => {
   const { company, role, status } = payload;
   if (!company || !role) {

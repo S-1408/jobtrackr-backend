@@ -27,15 +27,15 @@ export const login = async (req: Request, res: Response) => {
 };
 
 // POST /api/auth/refresh  (cookie sent automatically by the browser)
-export const refresh = (req: Request, res: Response) => {
-  const { accessToken, refreshToken } = authService.refresh(req.cookies?.[REFRESH_COOKIE]);
+export const refresh = async (req: Request, res: Response) => {
+  const { accessToken, refreshToken } = await authService.refresh(req.cookies?.[REFRESH_COOKIE]);
   res.cookie(REFRESH_COOKIE, refreshToken, refreshCookieOptions);
   res.json({ accessToken });
 };
 
 // POST /api/auth/logout — always 204, even without a cookie
-export const logout = (req: Request, res: Response) => {
-  authService.logout(req.cookies?.[REFRESH_COOKIE]);
+export const logout = async (req: Request, res: Response) => {
+  await authService.logout(req.cookies?.[REFRESH_COOKIE]);
   res.clearCookie(REFRESH_COOKIE, clearCookieOptions);
   res.status(204).send();
 };

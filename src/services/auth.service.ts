@@ -2,10 +2,12 @@ import bcrypt from "bcryptjs";
 import { AppError } from "../utils/AppError.js";
 import { findByEmail, findById, toPublicUser } from "./user.service.js";
 import {
-  isRefreshTokenValid,
+  consumeRefreshToken,
   revokeAllForUser,
   revokeRefreshToken,
   saveRefreshToken,
+} from "./refresh-token.store.js";
+import {
   signAccessToken,
   signRefreshToken,
   verifyRefreshToken,
@@ -16,10 +18,10 @@ import {
 const DUMMY_HASH = "$2b$10$XAuV0QFPaRQQBuTuGB04tOHZ71Ko6iSTpF.4QO7Bm.18SAga8pZP2";
 
 // Sign both tokens and remember the refresh token so it can be revoked later
-function issueTokens(userId: number) {
+async function issueTokens(userId: number) {
   const accessToken = signAccessToken(userId);
   const refreshToken = signRefreshToken(userId);
-  saveRefreshToken(refreshToken, userId);
+  await saveRefreshToken(refreshToken, userId);
   return { accessToken, refreshToken };
 }
 
@@ -43,7 +45,7 @@ export async function login(email: unknown, password: unknown) {
     throw new AppError(401, "Invalid email or password");
   }
 
-  return { ...issueTokens(user.id), user: toPublicUser(user) };
+  return { ...(await issueTokens(user.id)), user: toPublicUser(user) };
 }
 
 // refresh
@@ -55,7 +57,7 @@ export async function login(email: unknown, password: unknown) {
 // NO → it was already rotated/revoked → token reuse → revoke ALL of this user's sessions (401)
 //    ↓
 // YES → rotate: revoke old, issue new pair
-export function refresh(oldRefreshToken: unknown) {
+export async function refresh(oldRefreshToken: unknown) {
   if (typeof oldRefreshToken !== "string" || !oldRefreshToken) {
     throw new AppError(401, "Missing refresh token");
   }
@@ -63,12 +65,10 @@ export function refresh(oldRefreshToken: unknown) {
   const payload = verifyRefreshToken(oldRefreshToken);
   const userId = Number(payload.sub); // sub is always a string in the JWT
 
-  if (!isRefreshTokenValid(oldRefreshToken)) {
-    revokeAllForUser(userId);
+  if (!(await consumeRefreshToken(oldRefreshToken))) {
+    await revokeAllForUser(userId);
     throw new AppError(401, "Refresh token has been revoked");
   }
-
-  revokeRefreshToken(oldRefreshToken);
 
   // user may have been deleted since the token was issued
   if (!findById(userId)) {
@@ -79,8 +79,8 @@ export function refresh(oldRefreshToken: unknown) {
 }
 
 // logout never fails — calling it twice, or with no/invalid cookie, still ends the session client-side
-export function logout(refreshToken: unknown) {
+export async function logout(refreshToken: unknown) {
   if (typeof refreshToken === "string" && refreshToken) {
-    revokeRefreshToken(refreshToken);
+    await revokeRefreshToken(refreshToken);
   }
 }

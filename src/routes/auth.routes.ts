@@ -33,6 +33,7 @@ const router = express.Router();
  *       401:
  *         description: Invalid email or password
  */
+// Public: credentials are used to issue tokens; no access token is required.
 router.post("/login",login);
 
 /**
@@ -47,6 +48,7 @@ router.post("/login",login);
  *       401:
  *         description: Missing, invalid, expired or revoked refresh token
  */
+// Public to access-token auth: the refresh-token cookie is used instead.
 router.post("/refresh",refresh);
 
 /**
@@ -59,6 +61,7 @@ router.post("/refresh",refresh);
  *       204:
  *         description: Logged out (also returned when there was no session)
  */
+// Public to access-token auth: logout revokes a refresh token when its cookie is present.
 router.post("/logout",logout);
 
 /**
@@ -75,6 +78,8 @@ router.post("/logout",logout);
  *       401:
  *         description: Missing, invalid or expired access token
  */
-router.get("/me",requireAuth,me); //  (protected with requireAuth; useful for testing and for the frontend)
+
+// Protected: requires a valid access token.
+router.get("/me",requireAuth,me);
 
 export default router;
