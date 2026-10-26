@@ -37,7 +37,7 @@ Production does not create a default account or demo application records. Create
 
 Set the frontend's API base URL to `https://<backend-host>` and redeploy it. Set backend `CORS_ORIGIN` to the frontend's deployed origin, then restart or redeploy the backend. Browser requests that use refresh-token cookies must send credentials.
 
-Refresh cookies are HttpOnly, Secure in production, and use SameSite=Strict. For the most reliable browser behavior, host the frontend and API on the same site, such as `app.example.com` and `api.example.com`. Unrelated hosting domains may be treated as third-party-cookie contexts by browsers.
+Refresh cookies are HttpOnly and Secure in production. Production uses SameSite=None so the browser can send the cookie between a separately hosted frontend and API; refresh and logout also validate a supplied Origin against `CORS_ORIGIN`. Browser requests must include credentials. Some browsers or privacy settings block third-party cookies regardless; a custom frontend/API pair under one site (such as `app.example.com` and `api.example.com`) is preferable for reliable sessions.
 
 ## Data persistence and migration
 

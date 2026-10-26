@@ -7,6 +7,7 @@ import {
   register,
 } from "../controllers/auth.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
+import { requireTrustedOrigin } from "../middleware/trusted-origin.middleware.js";
 const router = express.Router();
 
 // Swagger UI is served from the same origin as the API, so the browser stores the httpOnly
@@ -86,7 +87,7 @@ router.post("/login",login);
  *         description: Missing, invalid, expired or revoked refresh token
  */
 // Public to access-token auth: the refresh-token cookie is used instead.
-router.post("/refresh",refresh);
+router.post("/refresh",requireTrustedOrigin,refresh);
 
 /**
  * @openapi
@@ -99,7 +100,7 @@ router.post("/refresh",refresh);
  *         description: Logged out (also returned when there was no session)
  */
 // Public to access-token auth: logout revokes a refresh token when its cookie is present.
-router.post("/logout",logout);
+router.post("/logout",requireTrustedOrigin,logout);
 
 /**
  * @openapi

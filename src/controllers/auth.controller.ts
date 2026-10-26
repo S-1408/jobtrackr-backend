@@ -9,7 +9,7 @@ const REFRESH_COOKIE = "refreshToken";
 const refreshCookieOptions: CookieOptions = {
     httpOnly:true,                       // Js cant read it -XSS cant steal it
     secure:env.nodeEnv==="production",   // HTTPS only in prod
-    sameSite:"strict",                   // CSRF protection
+    sameSite:env.nodeEnv==="production" ? "none" : "strict",
     path:"/api/auth",                    // only sent to auth routes, not every request
     maxAge:7*24*60*60*1000               // match the refresh expiry
 }
