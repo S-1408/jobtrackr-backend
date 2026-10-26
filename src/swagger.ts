@@ -13,6 +13,11 @@ const options = {
     servers: [
       {
         url: "http://localhost:4000",
+        description: "Local development",
+      },
+      {
+        url: "https://jobtrackr-backend-4ji9.onrender.com",
+        description: "Production",
       },
     ],
 
