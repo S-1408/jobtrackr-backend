@@ -35,6 +35,23 @@ const initializeSchema = () => {
   return schemaReady;
 };
 
+export async function initializeRefreshTokenStore() {
+  await initializeSchema();
+}
+
+export async function checkRefreshTokenStore() {
+  await initializeSchema();
+  await getPool().query("SELECT 1");
+}
+
+export async function closeRefreshTokenStore() {
+  if (pool) {
+    await pool.end();
+    pool = undefined;
+    schemaReady = undefined;
+  }
+}
+
 const hashToken = (token: string) =>
   crypto.createHash("sha256").update(token).digest("hex");
 

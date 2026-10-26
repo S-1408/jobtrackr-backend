@@ -91,7 +91,7 @@ Every error response has `error`:
 
 | Method | Path | Success |
 |---|---|---|
-| GET | `/health` | 200 |
+| GET | `/health` | 200 (PostgreSQL reachable) |
 | GET | `/applications` | 200 (paginated list) |
 | GET | `/dashboard/stats` | 200 |
 | GET | `/applications/:id` | 200 |

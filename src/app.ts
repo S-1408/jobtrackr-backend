@@ -9,10 +9,12 @@ import authRoutes from './routes/auth.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware.js'
 import { env } from './config/env.js';
 import cookieParser from 'cookie-parser';
+import { checkRefreshTokenStore } from './services/refresh-token.store.js';
 
 //Express app is just a request handler function. 
 // Express runs your middleware and routes inside the one callback Node gives it.
 const app = express();
+app.disable("x-powered-by");
 
 // Middleware chain json,auth,logs
 // cors middleware
@@ -44,6 +46,11 @@ app.get("/", (req, res) => {
   res.json({
     message: "JobTrackr API is running",
   });
+});
+
+app.get("/health", async (_req, res) => {
+  await checkRefreshTokenStore();
+  res.json({ status: "ok" });
 });
 
 // Routes
